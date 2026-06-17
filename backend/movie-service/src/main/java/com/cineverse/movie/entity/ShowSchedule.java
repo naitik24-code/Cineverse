@@ -1,33 +1,24 @@
 package com.cineverse.movie.entity;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Table(name = "show_schedules")
+@Document(collection = "show_schedules")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ShowSchedule {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false)
-    private Long movieId;
-
-    @Column(nullable = false)
+    private String movieId;
     private String movieTitle;
-
-    @Column(nullable = false)
+    private String screenId;
     private String showDate;
-
-    @Column(nullable = false)
     private String showTime;
-
-    @Column(length = 2000)
     private String blockedSeats = ""; // comma-separated seat ids like "A-1,A-2"
 }

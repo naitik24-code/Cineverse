@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
 import Navbar from './components/Navbar';
@@ -9,119 +10,61 @@ import SeatManagement from './pages/SeatManagement';
 import Card from './components/Card';
 import Button from './components/Button';
 import './App.css';
+import { movieService, reviewService } from './services/api';
+import { useAuth } from './context/AuthContext';
+import ProtectedRoute from './routes/ProtectedRoute';
 
-const INITIAL_MOVIES = [
-  {
-    id: 1,
-    title: "Interstellar",
-    genre: "Sci-Fi",
-    year: 2014,
-    rating: 8.7,
-    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&auto=format&fit=crop&q=80",
-    overview: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival. Faced with dwindling resources on Earth, a group of scientists and pilots embark on the most important mission in human history.",
-    reviews: [
-      { id: 1, author: "Alice Smith", rating: 5, comment: "An absolute masterpiece of modern science fiction. The soundtrack by Hans Zimmer is legendary!" },
-      { id: 2, author: "Bob Jones", rating: 4, comment: "Visually stunning and emotionally heavy. Slightly confusing at the end but brilliant." }
-    ]
-  },
-  {
-    id: 2,
-    title: "The Dark Knight",
-    genre: "Action",
-    year: 2008,
-    rating: 9.0,
-    image: "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?w=600&auto=format&fit=crop&q=80",
-    overview: "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
-    reviews: [
-      { id: 1, author: "Charlie Brown", rating: 5, comment: "Heath Ledger's performance is legendary. Best comic book movie ever made." }
-    ]
-  },
-  {
-    id: 3,
-    title: "Inception",
-    genre: "Sci-Fi",
-    year: 2010,
-    rating: 8.8,
-    image: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600&auto=format&fit=crop&q=80",
-    overview: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O., but his tragic past may doom the project.",
-    reviews: [
-      { id: 1, author: "David Miller", rating: 5, comment: "Mind-bending and original. The hallway fight scene is incredible!" }
-    ]
-  },
-  {
-    id: 4,
-    title: "Pulp Fiction",
-    genre: "Thriller",
-    year: 1994,
-    rating: 8.9,
-    image: "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=600&auto=format&fit=crop&q=80",
-    overview: "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption in Los Angeles.",
-    reviews: [
-      { id: 1, author: "Emma Watson", rating: 4, comment: "Tarantino at his finest. The dialogue is top-notch." }
-    ]
-  },
-  {
-    id: 5,
-    title: "Gladiator",
-    genre: "Action",
-    year: 2000,
-    rating: 8.5,
-    image: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=600&auto=format&fit=crop&q=80",
-    overview: "A former Roman General sets out to exact vengeance against the corrupt emperor who murdered his family and sent him into slavery.",
-    reviews: [
-      { id: 1, author: "Frank Castle", rating: 5, comment: "Are you not entertained? A cinematic classic!" }
-    ]
-  },
-  {
-    id: 6,
-    title: "The Godfather",
-    genre: "Drama",
-    year: 1972,
-    rating: 9.2,
-    image: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=600&auto=format&fit=crop&q=80",
-    overview: "The aging patriarch of an organized crime dynasty in postwar New York City transfers control of his clandestine empire to his reluctant youngest son.",
-    reviews: [
-      { id: 1, author: "Grace Hopper", rating: 5, comment: "The definition of perfect cinema. Every shot is art." }
-    ]
-  }
-];
+function AppContent() {
+  const { isLoggedIn, userName, userRole, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-function App() {
-  const [movies, setMovies] = useState(INITIAL_MOVIES);
-  
-  // App routing and authenticating states
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const [userName, setUserName] = useState("Naitik Pathak");
-  const [userRole, setUserRole] = useState("User"); // 'User', 'Theatre Owner', 'Admin'
-  
-  // Tab selector: 'dashboard', 'booking', or 'seat-mgmt'
-  const [activeTab, setActiveTab] = useState('dashboard');
-  
+  const [movies, setMovies] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMovie, setSelectedMovie] = useState(null);
-  
-  // Seating show scheduling info message
   const [seatingInfoMsg, setSeatingInfoMsg] = useState(null);
-  
-  // Bookings list state
-  const [bookings, setBookings] = useState([
-    {
-      id: 1,
-      movie: "Inception",
-      seats: "C-2, C-3",
-      price: 25.0
-    }
-  ]);
 
   // Review submission states
-  const [reviewAuthor, setReviewAuthor] = useState("Naitik Pathak");
+  const [reviewAuthor, setReviewAuthor] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
-  const [reviewComment, setReviewComment] = useState("");
+  const [reviewComment, setReviewComment] = useState('');
 
   // Quick book trigger
   const [quickBookMovieId, setQuickBookMovieId] = useState(null);
+
+  const fetchMovies = async () => {
+    try {
+      const data = await movieService.getMovies();
+      setMovies(data);
+    } catch (err) {
+      console.error('Failed to load movies:', err);
+    }
+  };
+
+  const fetchBookings = async (username, role) => {
+    try {
+      const nameFilter = role === 'User' ? username : null;
+      const data = await movieService.getBookings(nameFilter);
+      setBookings(data);
+    } catch (err) {
+      console.error('Failed to load bookings:', err);
+    }
+  };
+
+  // On Mount
+  useEffect(() => {
+    fetchMovies();
+  }, []);
+
+  // Sync Bookings & Reviews Author
+  useEffect(() => {
+    if (isLoggedIn && userName) {
+      fetchBookings(userName, userRole);
+      setReviewAuthor(userName);
+    }
+  }, [isLoggedIn, userName, userRole]);
 
   // Filter movies for dashboard grid
   const filteredMovies = movies.filter(movie => {
@@ -131,50 +74,37 @@ function App() {
     return matchesSearch && matchesCategory;
   });
 
-  const handleLoginSuccess = (name, role) => {
-    setUserName(name);
-    setUserRole(role);
-    setIsLoggedIn(true);
-    setIsAuthenticating(false);
-    
-    // Set default tab based on role feature matrix
-    if (role === 'User') {
-      setActiveTab('dashboard');
-    } else {
-      setActiveTab('dashboard');
+  const handleQuickBook = (movieId) => {
+    setQuickBookMovieId(movieId);
+    navigate('/booking');
+  };
+
+  const handleAddBooking = async (movieTitle, seats, price) => {
+    try {
+      const newBooking = {
+        username: userName,
+        movieTitle: movieTitle,
+        seats: seats.join(', '),
+        price: price
+      };
+      await movieService.addBooking(newBooking);
+      await fetchBookings(userName, userRole);
+    } catch (err) {
+      console.error('Booking failed:', err);
     }
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUserRole('User');
-    setUserName('Naitik Pathak');
-    setActiveTab('dashboard');
-    setSeatingInfoMsg(null);
-  };
-
-  const handleQuickBook = (movieId) => {
-    setQuickBookMovieId(movieId);
-    setActiveTab('booking');
-  };
-
-  const handleAddBooking = (movieTitle, seats, price) => {
-    const newBooking = {
-      id: Date.now(),
-      movie: movieTitle,
-      seats: seats.join(', '),
-      price: price
-    };
-    setBookings(prev => [newBooking, ...prev]);
-  };
-
-  const handleAddNewMovie = (newMovieObj) => {
-    setMovies(prev => [newMovieObj, ...prev]);
+  const handleAddNewMovie = async (newMovieObj) => {
+    try {
+      await movieService.addMovie(newMovieObj);
+      await fetchMovies();
+    } catch (err) {
+      console.error('Failed to add movie:', err);
+    }
   };
 
   const handleShowMessage = (msg) => {
     setSeatingInfoMsg(msg);
-    // Auto-clear message after 6 seconds
     setTimeout(() => {
       setSeatingInfoMsg(null);
     }, 6000);
@@ -183,139 +113,168 @@ function App() {
   const handleOpenMovie = (movie) => {
     setSelectedMovie(movie);
     setReviewRating(5);
-    setReviewComment("");
+    setReviewComment('');
   };
 
   const handleCloseMovie = () => {
     setSelectedMovie(null);
   };
 
-  const handleAddReview = (e) => {
+  const handleAddReview = async (e) => {
     e.preventDefault();
     if (!reviewAuthor.trim() || !reviewComment.trim()) return;
 
-    const newReview = {
-      id: Date.now(),
-      author: reviewAuthor,
-      rating: reviewRating,
-      comment: reviewComment
-    };
+    try {
+      const newReview = {
+        movieId: selectedMovie.id,
+        author: reviewAuthor,
+        rating: reviewRating,
+        comment: reviewComment
+      };
+      await reviewService.addReview(newReview);
+      
+      const data = await movieService.getMovies();
+      setMovies(data);
 
-    setMovies(prevMovies =>
-      prevMovies.map(movie => {
-        if (movie.id === selectedMovie.id) {
-          const updatedReviews = [...movie.reviews, newReview];
-          const avgRating = parseFloat(
-            ((movie.rating * movie.reviews.length + reviewRating) / updatedReviews.length).toFixed(1)
-          );
-          
-          const updatedMovie = {
-            ...movie,
-            rating: avgRating,
-            reviews: updatedReviews
-          };
-          
-          setSelectedMovie(updatedMovie);
-          return updatedMovie;
-        }
-        return movie;
-      })
-    );
-
-    setReviewComment("");
+      const updatedMovie = data.find(m => m.id === selectedMovie.id);
+      if (updatedMovie) {
+        setSelectedMovie(updatedMovie);
+      }
+      
+      setReviewComment('');
+    } catch (err) {
+      console.error('Failed to add review:', err);
+    }
   };
 
-  // If not logged in, render public pages
-  if (!isLoggedIn) {
-    if (isAuthenticating) {
-      return (
-        <AuthPage 
-          onLoginSuccess={handleLoginSuccess}
-          onCancel={() => setIsAuthenticating(false)}
-        />
-      );
+  const handleCategoryChange = (cat) => {
+    setSelectedCategory(cat);
+    if (location.pathname !== '/dashboard') {
+      navigate('/dashboard');
     }
+  };
+
+  if (loading) {
     return (
-      <LandingPage 
-        onGetStarted={() => setIsAuthenticating(true)}
-        trendingMovies={movies}
-      />
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'var(--text-main)' }}>
+        Initializing Cineverse...
+      </div>
     );
   }
 
-  return (
-    <div className="cv-app-container">
-      <Navbar 
-        activeTab={activeTab} 
-        onTabChange={(tab) => {
-          setActiveTab(tab);
-          setQuickBookMovieId(null); // Clear booking pre-selects
-        }} 
-        userName={userName}
-        userRole={userRole}
-        onLogout={handleLogout}
-      />
+  // App layout wrapper for protected views
+  const renderLayout = (component) => {
+    return (
+      <div className="cv-app-container">
+        <Navbar />
+        <div className="cv-app-layout-wrapper">
+          {seatingInfoMsg && (
+            <div className="glass-card" style={{ maxWidth: '1400px', margin: '0 auto 1.5rem auto', borderColor: 'var(--primary)', color: 'var(--primary)', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>📢 <strong>System Notice:</strong> {seatingInfoMsg}</span>
+              <button onClick={() => setSeatingInfoMsg(null)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', fontSize: '1.1rem' }}>✕</button>
+            </div>
+          )}
 
-      <div className="cv-app-layout-wrapper">
-        
-        {/* Scheduled Show Status Banner */}
-        {seatingInfoMsg && (
-          <div className="glass-card" style={{ maxWidth: '1400px', margin: '0 auto 1.5rem auto', borderColor: 'var(--primary)', color: 'var(--primary)', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>📢 <strong>System Notice:</strong> {seatingInfoMsg}</span>
-            <button onClick={() => setSeatingInfoMsg(null)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', fontSize: '1.1rem' }}>✕</button>
+          <div className="cv-app-layout-inner">
+            <Sidebar 
+              activeCategory={selectedCategory} 
+              onCategoryChange={handleCategoryChange}
+              stats={{
+                totalMovies: movies.length,
+                bookingsCount: bookings.length
+              }}
+            />
+            <main className="cv-app-main-content">
+              {component}
+            </main>
           </div>
-        )}
-
-        <div className="cv-app-layout-inner">
-          
-          {/* Global Sidebar */}
-          <Sidebar 
-            activeCategory={selectedCategory} 
-            onCategoryChange={(cat) => {
-              setSelectedCategory(cat);
-              if (activeTab !== 'dashboard') {
-                setActiveTab('dashboard'); // Auto-switch to dashboard when category filter selected
-              }
-            }}
-            stats={{
-              totalMovies: movies.length,
-              bookingsCount: bookings.length
-            }}
-            userRole={userRole}
-          />
-
-          {/* Main Router */}
-          <main className="cv-app-main-content">
-            {activeTab === 'dashboard' && (
-              <Dashboard 
-                movies={filteredMovies}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                onMovieClick={handleOpenMovie}
-                onQuickBook={handleQuickBook}
-                userRole={userRole}
-                onAddNewMovie={handleAddNewMovie}
-                bookingsCount={bookings.length}
-              />
-            )}
-            {activeTab === 'booking' && (
-              <BookingPage 
-                movies={movies}
-                bookings={bookings}
-                onAddBooking={handleAddBooking}
-                initialSelectedMovieId={quickBookMovieId}
-              />
-            )}
-            {activeTab === 'seat-mgmt' && (
-              <SeatManagement 
-                movies={movies}
-                onAddShowMessage={handleShowMessage}
-              />
-            )}
-          </main>
-
         </div>
       </div>
+    );
+  };
+
+  return (
+    <>
+      <Routes>
+        {/* Public Routes */}
+        <Route 
+          path="/" 
+          element={
+            isLoggedIn ? <Navigate to="/dashboard" replace /> : (
+              <LandingPage 
+                onGetStarted={() => navigate('/login')} 
+                trendingMovies={movies} 
+              />
+            )
+          } 
+        />
+        
+        <Route 
+          path="/login" 
+          element={
+            isLoggedIn ? <Navigate to="/dashboard" replace /> : (
+              <AuthPage 
+                onLoginSuccess={() => navigate('/dashboard')} 
+                onCancel={() => navigate('/')} 
+              />
+            )
+          } 
+        />
+
+        {/* Protected Routes */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              {renderLayout(
+                <Dashboard 
+                  movies={filteredMovies}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  onMovieClick={handleOpenMovie}
+                  onQuickBook={handleQuickBook}
+                  userRole={userRole}
+                  onAddNewMovie={handleAddNewMovie}
+                  bookingsCount={bookings.length}
+                />
+              )}
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/booking" 
+          element={
+            <ProtectedRoute allowedRoles={['User']}>
+              {renderLayout(
+                <BookingPage 
+                  movies={movies}
+                  bookings={bookings}
+                  onAddBooking={handleAddBooking}
+                  initialSelectedMovieId={quickBookMovieId}
+                />
+              )}
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/seat-mgmt" 
+          element={
+            <ProtectedRoute allowedRoles={['Theatre Owner', 'Admin']}>
+              {renderLayout(
+                <SeatManagement 
+                  movies={movies}
+                  onAddShowMessage={handleShowMessage}
+                />
+              )}
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Fallback Catch-all Route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
       {/* Movie Detail Modal with Review Section */}
       {selectedMovie && (
@@ -350,7 +309,7 @@ function App() {
 
               {/* Audience Reviews */}
               <div className="reviews-section">
-                <h3 className="reviews-title">User Reviews ({selectedMovie.reviews.length})</h3>
+                <h3 className="reviews-title">User Reviews ({selectedMovie.reviews ? selectedMovie.reviews.length : 0})</h3>
                 
                 {/* Add Review Form */}
                 <form className="review-form" onSubmit={handleAddReview}>
@@ -397,7 +356,7 @@ function App() {
 
                 {/* Reviews List */}
                 <div className="reviews-list">
-                  {selectedMovie.reviews.map(rev => (
+                  {selectedMovie.reviews && selectedMovie.reviews.map(rev => (
                     <div key={rev.id} className="review-item">
                       <div className="review-header">
                         <span className="review-author">{rev.author}</span>
@@ -408,7 +367,7 @@ function App() {
                       <p className="review-comment">{rev.comment}</p>
                     </div>
                   ))}
-                  {selectedMovie.reviews.length === 0 && (
+                  {(!selectedMovie.reviews || selectedMovie.reviews.length === 0) && (
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Be the first to review this movie!</p>
                   )}
                 </div>
@@ -432,8 +391,14 @@ function App() {
           </p>
         </div>
       </footer>
-    </div>
+    </>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+}

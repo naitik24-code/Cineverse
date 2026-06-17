@@ -1,13 +1,15 @@
 import React from 'react';
+import { useAuth } from '../context/AuthContext';
 import './Sidebar.css';
 
 const Sidebar = ({
   activeCategory,
   onCategoryChange,
   categories = ["All", "Action", "Sci-Fi", "Drama", "Thriller"],
-  stats = { totalMovies: 6, bookingsCount: 0 },
-  userRole = "User"
+  stats = { totalMovies: 6, bookingsCount: 0 }
 }) => {
+  const { userRole } = useAuth();
+
   return (
     <aside className="cv-sidebar glass-card">
       <div className="cv-sidebar-section">
@@ -65,4 +67,3 @@ const Sidebar = ({
 };
 
 export default Sidebar;
-

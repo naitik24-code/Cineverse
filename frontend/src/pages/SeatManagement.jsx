@@ -3,6 +3,7 @@ import Card from '../components/Card';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import './Pages.css';
+import { movieService } from '../services/api';
 
 const SeatManagement = ({ movies = [], onAddShowMessage }) => {
   const [selectedMovieId, setSelectedMovieId] = useState(movies.length > 0 ? movies[0].id : '');
@@ -24,13 +25,25 @@ const SeatManagement = ({ movies = [], onAddShowMessage }) => {
     });
   };
 
-  const handleScheduleShow = (e) => {
+  const handleScheduleShow = async (e) => {
     e.preventDefault();
-    const movieObj = movies.find((m) => m.id === parseInt(selectedMovieId));
+    const movieObj = movies.find((m) => m.id?.toString() === selectedMovieId?.toString());
     if (!movieObj) return;
 
-    // Trigger feedback message
-    onAddShowMessage(`Scheduled "${movieObj.title}" for ${showDate} at ${showTime}. Total blocked manager seats: ${blockedSeats.length}`);
+    try {
+      const showObj = {
+        movieId: movieObj.id,
+        movieTitle: movieObj.title,
+        showDate: showDate,
+        showTime: showTime,
+        blockedSeats: blockedSeats.join(', ')
+      };
+      await movieService.addShow(showObj);
+      onAddShowMessage(`Scheduled "${movieObj.title}" for ${showDate} at ${showTime}. Total blocked manager seats: ${blockedSeats.length}`);
+    } catch (err) {
+      console.error('Failed to schedule show:', err);
+      onAddShowMessage(`Failed to schedule show: ${err.message}`);
+    }
   };
 
   return (

@@ -1,0 +1,4 @@
+com\cineverse\gateway\filter\GlobalLoggingFilter.class
+com\cineverse\gateway\GatewayApplication.class
+com\cineverse\gateway\filter\JwtAuthenticationFilter$Config.class
+com\cineverse\gateway\filter\JwtAuthenticationFilter.class

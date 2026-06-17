@@ -13,41 +13,38 @@ public class ReviewService {
     @Autowired
     private ReviewRepository reviewRepository;
 
-    public Review addReview(Review review) {
-        if (review.getRating() < 1 || review.getRating() > 5) {
-            throw new RuntimeException("Rating must be between 1 and 5");
-        }
-        return reviewRepository.save(review);
+    public List<Review> getAllReviews() {
+        return reviewRepository.findAll();
     }
 
-    public List<Review> getReviewsByMovieId(Long movieId) {
+    public List<Review> getReviewsByMovieId(String movieId) {
         return reviewRepository.findByMovieId(movieId);
     }
 
-    public List<Review> getAllReviews() {
-        return reviewRepository.findAll();
+    public Review addReview(Review review) {
+        return reviewRepository.save(review);
     }
 
     public void initDefaultReviews() {
         if (reviewRepository.count() == 0) {
             // Movie 1: Interstellar
-            reviewRepository.save(new Review(null, 1L, "Alice Smith", 5, "An absolute masterpiece of modern science fiction. The soundtrack by Hans Zimmer is legendary!"));
-            reviewRepository.save(new Review(null, 1L, "Bob Jones", 4, "Visually stunning and emotionally heavy. Slightly confusing at the end but brilliant."));
+            reviewRepository.save(new Review(null, "100000000000000000000001", "Alice Smith", 5, "An absolute masterpiece of modern science fiction. The soundtrack by Hans Zimmer is legendary!"));
+            reviewRepository.save(new Review(null, "100000000000000000000001", "Bob Jones", 4, "Visually stunning and emotionally heavy. Slightly confusing at the end but brilliant."));
             
             // Movie 2: The Dark Knight
-            reviewRepository.save(new Review(null, 2L, "Charlie Brown", 5, "Heath Ledger's performance is legendary. Best comic book movie ever made."));
+            reviewRepository.save(new Review(null, "100000000000000000000002", "Charlie Brown", 5, "Heath Ledger's performance is legendary. Best comic book movie ever made."));
             
             // Movie 3: Inception
-            reviewRepository.save(new Review(null, 3L, "David Miller", 5, "Mind-bending and original. The hallway fight scene is incredible!"));
+            reviewRepository.save(new Review(null, "100000000000000000000003", "David Miller", 5, "Mind-bending and original. The hallway fight scene is incredible!"));
             
             // Movie 4: Pulp Fiction
-            reviewRepository.save(new Review(null, 4L, "Emma Watson", 4, "Tarantino at his finest. The dialogue is top-notch."));
+            reviewRepository.save(new Review(null, "100000000000000000000004", "Emma Watson", 4, "Tarantino at his finest. The dialogue is top-notch."));
             
             // Movie 5: Gladiator
-            reviewRepository.save(new Review(null, 5L, "Frank Castle", 5, "Are you not entertained? A cinematic classic!"));
+            reviewRepository.save(new Review(null, "100000000000000000000005", "Frank Castle", 5, "Are you not entertained? A cinematic classic!"));
             
             // Movie 6: The Godfather
-            reviewRepository.save(new Review(null, 6L, "Grace Hopper", 5, "The definition of perfect cinema. Every shot is art."));
+            reviewRepository.save(new Review(null, "100000000000000000000006", "Grace Hopper", 5, "The definition of perfect cinema. Every shot is art."));
         }
     }
 }

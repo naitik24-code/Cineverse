@@ -1,30 +1,22 @@
 package com.cineverse.review.entity;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Table(name = "reviews")
+@Document(collection = "reviews")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Review {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false)
-    private Long movieId;
-
-    @Column(nullable = false)
+    private String movieId;
     private String author;
-
-    @Column(nullable = false)
-    private Integer rating;
-
-    @Column(length = 2000, nullable = false)
+    private Integer rating; // 1 to 5 stars
     private String comment;
 }

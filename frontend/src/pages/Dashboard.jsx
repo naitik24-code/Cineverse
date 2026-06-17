@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MovieCard from '../components/MovieCard';
 import Input from '../components/Input';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import './Pages.css';
+import { authService } from '../services/api';
 
 const Dashboard = ({
   movies = [],
@@ -24,22 +25,39 @@ const Dashboard = ({
   const [newOverview, setNewOverview] = useState('');
 
   // Admin user list management
-  const [userList, setUserList] = useState([
-    { id: 1, name: 'Alice Smith', role: 'User', status: 'Active' },
-    { id: 2, name: 'Bob Jones', role: 'User', status: 'Active' },
-    { id: 3, name: 'Naitik Pathak', role: 'Admin', status: 'Active' },
-    { id: 4, name: 'Cinema Manager E1', role: 'Theatre Owner', status: 'Active' }
-  ]);
+  const [userList, setUserList] = useState([]);
 
-  const toggleUserStatus = (userId) => {
-    setUserList((prev) =>
-      prev.map((usr) =>
-        usr.id === userId
-          ? { ...usr, status: usr.status === 'Active' ? 'Suspended' : 'Active' }
-          : usr
-      )
-    );
+  const fetchUsers = async () => {
+    try {
+      const data = await authService.getUsers();
+      // Map username to name for consistency with UI
+      const mapped = data.map(u => ({
+        id: u.id,
+        name: u.username,
+        role: u.role,
+        status: u.status
+      }));
+      setUserList(mapped);
+    } catch (e) {
+      console.error('Failed to load users:', e);
+    }
   };
+
+  useEffect(() => {
+    if (userRole === 'Admin') {
+      fetchUsers();
+    }
+  }, [userRole]);
+
+  const toggleUserStatus = async (userId) => {
+    try {
+      await authService.toggleUserStatus(userId);
+      await fetchUsers();
+    } catch (e) {
+      console.error('Failed to toggle status:', e);
+    }
+  };
+
 
   const handleCreateMovie = (e) => {
     e.preventDefault();
@@ -75,7 +93,7 @@ const Dashboard = ({
             The multi-award winning classic crime drama centering on the Corleone family. A timeless cinematic experience.
           </p>
           {userRole === 'User' && (
-            <Button variant="primary" onClick={() => onQuickBook(6)}>
+            <Button variant="primary" onClick={() => onQuickBook("100000000000000000000006")}>
               Book Tickets Now
             </Button>
           )}

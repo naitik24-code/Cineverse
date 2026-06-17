@@ -3,20 +3,23 @@ import Card from '../components/Card';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import './AuthPage.css';
+import { useAuth } from '../context/AuthContext';
 
 const AuthPage = ({ onLoginSuccess, onCancel }) => {
+  const { login, register } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState('Naitik Pathak');
+  const [name, setName] = useState('Naitik Pathak');
+  const [email, setEmail] = useState('naitik@cineverse.com');
   const [password, setPassword] = useState('123456');
   const [role, setRole] = useState('User'); // 'User', 'Theatre Owner', 'Admin'
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (username.trim().length < 3) {
-      setError('Username must be at least 3 characters.');
+    if (!email.includes('@')) {
+      setError('Please enter a valid email address.');
       return;
     }
 
@@ -25,8 +28,22 @@ const AuthPage = ({ onLoginSuccess, onCancel }) => {
       return;
     }
 
-    // Pass successful login details back to App context
-    onLoginSuccess(username, role);
+    if (!isLogin && name.trim().length < 3) {
+      setError('Name must be at least 3 characters.');
+      return;
+    }
+
+    try {
+      if (isLogin) {
+        const data = await login(email, password, role);
+        onLoginSuccess(data.name, data.role, data.token, data.email);
+      } else {
+        const data = await register(email, name, password, role);
+        onLoginSuccess(data.name, data.role, data.token, data.email);
+      }
+    } catch (err) {
+      setError(err.message || 'Authentication failed');
+    }
   };
 
   return (
@@ -48,14 +65,27 @@ const AuthPage = ({ onLoginSuccess, onCancel }) => {
         {error && <div className="cv-auth-error-alert">{error}</div>}
 
         <form onSubmit={handleSubmit} className="cv-auth-form">
+          {/* Full Name input for registration */}
+          {!isLogin && (
+            <Input
+              label="Full Name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your full name"
+              required
+              icon="👤"
+            />
+          )}
+
           <Input
-            label="Username"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter your username"
+            label="Email Address"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
             required
-            icon="👤"
+            icon="✉️"
           />
 
           <Input
@@ -99,9 +129,9 @@ const AuthPage = ({ onLoginSuccess, onCancel }) => {
         <div className="cv-auth-info-box glass-card">
           <p><strong>SWC Assessment Quick Testing Creds:</strong></p>
           <ul>
-            <li><strong>User</strong> role: Default is set to <em>User</em></li>
-            <li><strong>Theatre Owner</strong> role: Allows adding movies, managing shows, viewing reports.</li>
-            <li><strong>Admin</strong> role: Full access including managing users.</li>
+            <li><strong>Admin</strong>: <em>naitik@cineverse.com</em> / <em>123456</em></li>
+            <li><strong>User</strong>: <em>alice@cineverse.com</em> / <em>123456</em></li>
+            <li><strong>Theatre Owner</strong>: <em>manager@cineverse.com</em> / <em>123456</em></li>
           </ul>
         </div>
       </Card>

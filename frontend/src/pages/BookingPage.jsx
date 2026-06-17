@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SeatLayout from '../components/SeatLayout';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import './Pages.css';
+import { movieService } from '../services/api';
 
 const BookingPage = ({
   movies = [],
@@ -15,10 +16,36 @@ const BookingPage = ({
   );
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [bookingSuccess, setBookingSuccess] = useState(null);
+  const [reservedSeats, setReservedSeats] = useState(['B-3', 'B-4', 'D-5', 'D-6', 'A-8']);
 
   const seatPrice = 12.5; // Price per seat in USD
 
-  const selectedMovie = movies.find(m => m.id === parseInt(selectedMovieId));
+  const selectedMovie = movies.find(m => m.id?.toString() === selectedMovieId?.toString());
+
+  useEffect(() => {
+    const fetchReservedSeats = async () => {
+      if (!selectedMovieId) return;
+      try {
+        const shows = await movieService.getShows();
+        const movieShows = shows.filter(s => s.movieId?.toString() === selectedMovieId?.toString());
+        const allBlocked = ['B-3', 'B-4', 'D-5', 'D-6', 'A-8'];
+        movieShows.forEach(s => {
+          if (s.blockedSeats) {
+            s.blockedSeats.split(',').forEach(seat => {
+              const trimmed = seat.trim();
+              if (trimmed && !allBlocked.includes(trimmed)) {
+                allBlocked.push(trimmed);
+              }
+            });
+          }
+        });
+        setReservedSeats(allBlocked);
+      } catch (e) {
+        console.error('Failed to fetch reserved seats:', e);
+      }
+    };
+    fetchReservedSeats();
+  }, [selectedMovieId]);
 
   const handleSeatClick = (seatId) => {
     setSelectedSeats(prev => {
@@ -35,6 +62,7 @@ const BookingPage = ({
     setSelectedSeats([]); // Clear seats on movie change
     setBookingSuccess(null);
   };
+
 
   const handleBookTickets = (e) => {
     e.preventDefault();
@@ -101,7 +129,7 @@ const BookingPage = ({
                 <SeatLayout
                   selectedSeats={selectedSeats}
                   onSeatClick={handleSeatClick}
-                  reservedSeats={['B-3', 'B-4', 'D-5', 'D-6', 'A-8']} // Dummy reservation lists
+                  reservedSeats={reservedSeats}
                 />
               </div>
             )}

@@ -1,30 +1,26 @@
 package com.cineverse.movie.entity;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Table(name = "bookings")
+@Document(collection = "bookings")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Booking {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false)
     private String username;
-
-    @Column(nullable = false)
+    private String movieId;
     private String movieTitle;
-
-    @Column(nullable = false)
+    private String showId; // References ShowSchedule ID
     private String seats; // comma-separated like "C-2, C-3"
-
-    @Column(nullable = false)
     private Double price;
+    private String status; // INITIATED, LOCKED, CONFIRMED, CANCELLED, EXPIRED
+    private Long lockedUntil; // Timestamp until which the seat lock remains valid
 }
