@@ -13,6 +13,11 @@ public class ReviewServiceApplication implements CommandLineRunner {
 	private ReviewService reviewService;
 
 	public static void main(String[] args) {
+		System.out.println("=== STARTING REVIEW-SERVICE ===");
+		System.out.println("SPRING_DATA_MONGODB_URI env: " + System.getenv("SPRING_DATA_MONGODB_URI"));
+		System.out.println("SPRING_DATA_MONGODB_URL env: " + System.getenv("SPRING_DATA_MONGODB_URL"));
+		System.out.println("MONGODB_URI env: " + System.getenv("MONGODB_URI"));
+		System.out.println("=================================");
 		SpringApplication.run(ReviewServiceApplication.class, args);
 	}
 
