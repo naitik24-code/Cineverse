@@ -177,7 +177,7 @@ const Dashboard = ({
               <div className="glass-card" style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>TOTAL REVENUE</div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: '850', color: 'var(--primary)' }}>$24,850.50</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '850', color: 'var(--primary)' }}>₹24,850.50</div>
                 </div>
                 <span style={{ fontSize: '2rem' }}>💰</span>
               </div>

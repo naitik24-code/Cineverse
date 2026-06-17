@@ -104,15 +104,15 @@ const SeatManagement = ({ movies = [], onAddShowMessage }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.9rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
                 <span>Row A & B (VIP Lounge):</span>
-                <strong style={{ color: 'var(--primary)' }}>$20.00</strong>
+                <strong style={{ color: 'var(--primary)' }}>₹20.00</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
                 <span>Row C & D (Standard Club):</span>
-                <strong>$12.50</strong>
+                <strong>₹12.50</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
                 <span>Row E (Economy Classic):</span>
-                <strong>$8.00</strong>
+                <strong>₹8.00</strong>
               </div>
             </div>
           </div>

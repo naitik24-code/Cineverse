@@ -141,7 +141,7 @@ const BookingPage = ({
                   <div>Selected Seats: <strong>{selectedSeats.join(', ')}</strong></div>
                   <div>Total Tickets: <strong>{selectedSeats.length}</strong></div>
                   <div className="cv-booking-total-price">
-                    Total Amount: <span className="gradient-text">${(selectedSeats.length * seatPrice).toFixed(2)}</span>
+                    Total Amount: <span className="gradient-text">₹{(selectedSeats.length * seatPrice).toFixed(2)}</span>
                   </div>
                 </div>
                 <Button type="submit" variant="primary" style={{ width: '100%' }}>
@@ -163,7 +163,7 @@ const BookingPage = ({
               <div className="cv-ticket-details">
                 <div className="cv-ticket-row"><span>Movie:</span><strong>{bookingSuccess.movie}</strong></div>
                 <div className="cv-ticket-row"><span>Seats:</span><strong>{bookingSuccess.seats}</strong></div>
-                <div className="cv-ticket-row"><span>Amount:</span><strong>${bookingSuccess.price.toFixed(2)}</strong></div>
+                <div className="cv-ticket-row"><span>Amount:</span><strong>₹{bookingSuccess.price.toFixed(2)}</strong></div>
                 <div className="cv-ticket-row"><span>Status:</span><span className="cv-badge-confirmed">CONFIRMED</span></div>
               </div>
               <div className="cv-ticket-qr">
@@ -183,7 +183,7 @@ const BookingPage = ({
                   <div className="cv-history-ticket-body">
                     <h4>{booking.movie}</h4>
                     <p>Seats: <strong>{booking.seats}</strong></p>
-                    <p className="cv-history-ticket-price">${booking.price.toFixed(2)}</p>
+                    <p className="cv-history-ticket-price">₹{booking.price.toFixed(2)}</p>
                   </div>
                   <div className="cv-history-ticket-badge">CONFIRMED</div>
                 </div>
